@@ -1,0 +1,11 @@
+#lang typed/racket
+
+(require "library.rkt")
+
+
+
+
+
+
+
+(define ns (integer-list-from-file "day3.txt"))
