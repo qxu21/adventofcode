@@ -60,4 +60,53 @@
 (display "\nGAMMA * EPSILON: ")
 (* input-gamma epsilon)
 
-                   
+(: find-o2-co2 : (Listof Integer) Boolean -> Integer)
+(define (find-o2-co2 li o2?)
+  (let
+      ([res (find-o2-co2-aux li (- bit-size 1) o2?)])
+    (if
+     (integer? res)
+     res
+     (begin
+       (display res)
+       (raise "aux never finished!")))))
+
+(: find-o2-co2-aux : (Listof Integer) Integer Boolean -> (U Integer (Listof Integer)))
+(define (find-o2-co2-aux li i o2?)
+  (let*
+      ([most-common
+        (>=              ; in the event of a tie, make it 1
+         (foldl
+          (lambda
+              ([v : Integer] [acc : Integer])
+            (if
+             (bitwise-bit-set? v i)
+             (+ acc 1)
+             acc))
+          0
+          li)
+         (/ (length li) 2)
+         )]
+                
+       [filtered
+        (filter
+         (lambda ([v : Integer])    ;predicate: is the ith bit set?
+           (boolean=?
+            (bitwise-bit-set? v i)
+            (if o2? most-common (not most-common))))
+         li)])
+    (match filtered
+      [(cons i '()) i]
+      [_
+       (if (= i 0)
+           filtered
+           (find-o2-co2-aux filtered (- i 1) o2?))])))
+
+(display "\nPART 2\nO2: ")
+(define o2 (find-o2-co2 ns #t))
+(display o2)
+(display "\nCO2: ")
+(define co2 (find-o2-co2 ns #f))
+(display co2)
+(display "\nPRODUCT: ")
+(* o2 co2)
