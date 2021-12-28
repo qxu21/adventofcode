@@ -2,7 +2,7 @@
 
 ;; ADVENT OF CODE 2021
 ;; qxu21
-;; DAY 4
+;; DAY 5
 
 (require "library.rkt")
 
