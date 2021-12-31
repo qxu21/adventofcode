@@ -21,6 +21,12 @@
 (: string->integer : String -> Integer)
 (define (string->integer s)
   (string->integer-base s 10))
+
+; DISTINCT FROM char->integer builtin
+; will return garbage
+(: char->int : Char -> Integer)
+(define (char->int c)
+  (- (char->integer c) 48))
   
 (: integer-list-from-file-base : Input-Port Integer -> (Listof Integer))
 (define (integer-list-from-file-base in b)
@@ -48,13 +54,77 @@
     vec
     (+ i 1))))
 
+(: strings-to-int-vector : (Listof String) -> (Vectorof Integer))
+(define (strings-to-int-vector li)
+  (list->vector
+   (map
+    char->int
+    (apply append
+     (map string->list li)))))
+
 (define test-vec '#(1 2 3 4 5))
 (check-expect (vector-fold + 1 test-vec) 16)
 (check-expect (vector-fold * 2 test-vec) 240)
+
+; foldl-i, feeding in the index
+(: foldl-i : (All (A B) (A B Integer -> B) B (Listof A) -> B))
+(define (foldl-i fn acc li)
+  (foldl-i-aux fn acc li 0))
+
+
+(: foldl-i-aux : (All (A B) (A B Integer -> B) B (Listof A) Integer -> B))
+(define (foldl-i-aux fn acc li i)
+  (match li
+    ['() acc]
+    [(cons head tail)
+     (foldl-i-aux
+      fn
+      (fn head acc i)
+      tail
+      (+ i 1))]))
+
+(check-expect
+ (foldl-i
+  (lambda ([a : Integer] [acc : Integer] [i : Integer])
+    (+ a acc i))
+  0
+  '(0 1 2 3 4 5))
+ 30)
+     
+
+; special case, where the file is one line long
+(: read-in-csv-numbers : String -> (Listof Integer))
+(define (read-in-csv-numbers filename)
+  (map string->integer
+       (string-split
+        (let
+            ([line (read-line (open-input-file filename))])
+          (if
+           (eof-object? line)
+           (raise "empty file")
+           line))
+          ",")))
+
+(: show-square-vector : (All (A) (Vectorof A) Integer -> Void))
+(define (show-square-vector v side)
+  (for ([y (range side)])
+    (begin
+      (display "[")
+      (for ([x (range side)])
+        (begin
+          (display (vector-ref v (+ (* side y) x)))
+          (display " ")))
+      (displayln "]"))))
+    
 
 (provide
  list-from-file
  string->integer
  integer-list-from-file
  integer-list-from-file-base
- vector-fold)
+ vector-fold
+ read-in-csv-numbers
+ foldl-i
+ char->int
+ strings-to-int-vector
+ show-square-vector)
