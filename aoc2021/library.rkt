@@ -115,7 +115,8 @@
           (display (vector-ref v (+ (* side y) x)))
           (display " ")))
       (displayln "]"))))
-    
+
+; filter2 - use partition
 
 (provide
  list-from-file
