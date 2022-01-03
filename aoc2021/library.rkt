@@ -62,6 +62,12 @@
     (apply append
      (map string->list li)))))
 
+(: strings-to-2-Map : (Listof String) -> (2-Map Integer))
+(define (strings-to-2-Map li)
+  (make-2-Map
+   (strings-to-int-vector li)
+   (string-length (first li))))
+
 (define test-vec '#(1 2 3 4 5))
 (check-expect (vector-fold + 1 test-vec) 16)
 (check-expect (vector-fold * 2 test-vec) 240)
@@ -150,6 +156,32 @@
    (hash-set h key (+ (hash-ref h key) count))
    (hash-set h key count)))
 
+(define-struct Coord
+  ([x : Integer]
+   [y : Integer])
+  #:transparent)
+
+(define-struct (A) 2-Map
+  ([mp : (Vectorof A)]
+   [side : Integer]))
+
+(: get-on-map : (All (A) (2-Map A) Coord -> A))
+(define (get-on-map mp co)
+  (vector-ref
+   (2-Map-mp mp)
+   (+ (Coord-x co) (* (2-Map-side mp) (Coord-y co)))))
+
+(: set-on-map : (All (A) (2-Map A) Coord A -> (2-Map A)))
+(define (set-on-map mp co v)
+  (let
+      ([co-i (+ (* (2-Map-side mp) (Coord-y co)) (Coord-x co))])
+    (make-2-Map
+     (build-vector
+      (expt (2-Map-side mp) 2)
+      (lambda ([i : Integer])
+        (if (= i co-i) v (vector-ref (2-Map-mp mp) i))))
+     (2-Map-side mp))))
+
 (provide
  list-from-file
  string->integer
@@ -160,6 +192,11 @@
  foldl-i
  char->int
  strings-to-int-vector
+ strings-to-2-Map
  show-square-vector
  histogram
- merge-into-hash)
+ merge-into-hash
+ (struct-out Coord)
+ (struct-out 2-Map)
+ get-on-map
+ set-on-map)
