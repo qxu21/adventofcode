@@ -118,6 +118,38 @@
 
 ; filter2 - use partition
 
+(: histogram : (All (A) (Listof A) -> (HashTable A Integer)))
+(define (histogram li)
+  (foldl
+   (lambda ([item : A] [table : (HashTable A Integer)])
+     (if
+      (hash-has-key? table item)
+      (hash-set table item (add1 (hash-ref table item)))
+      (hash-set table item 1)))
+   (ann (hash) (HashTable A Integer))
+   li))
+
+; ONLY USE THIS IF YOU'RE SURE THERE ARE NO COLLISIONS
+(: reverse-hash-table : (All (K V) (HashTable K V) -> (HashTable V K)))
+(define (reverse-hash-table h)
+  (if
+   (check-duplicates (hash-values h))
+   (raise "colliding list passed to reverse-hash-table")
+   (foldl
+    (lambda ([key : K] [nh : (HashTable V K)])
+      (let
+          ([val (hash-ref h key)])
+        (hash-set nh val key)))
+    (ann (hash) (HashTable V K))
+    (hash-keys h))))
+
+(: merge-into-hash : (All (K) (HashTable K Integer) K Integer -> (HashTable K Integer)))
+(define (merge-into-hash h key count)
+  (if
+   (hash-has-key? h key)
+   (hash-set h key (+ (hash-ref h key) count))
+   (hash-set h key count)))
+
 (provide
  list-from-file
  string->integer
@@ -128,4 +160,6 @@
  foldl-i
  char->int
  strings-to-int-vector
- show-square-vector)
+ show-square-vector
+ histogram
+ merge-into-hash)
